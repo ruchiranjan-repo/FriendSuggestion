@@ -1,7 +1,9 @@
 package com.friendsuggestiondemo.friendsuggestion.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -13,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.friendsuggestiondemo.friendsuggestion.dto.AddFriendsRequestDTO;
 import com.friendsuggestiondemo.friendsuggestion.dto.FriendSuggestionDTO;
+import com.friendsuggestiondemo.friendsuggestion.dto.MemberDTO;
 import com.friendsuggestiondemo.friendsuggestion.dto.SuccessDTO;
 import com.friendsuggestiondemo.friendsuggestion.dto.UserNameDTO;
 import com.friendsuggestiondemo.friendsuggestion.entity.Friend;
@@ -87,12 +90,46 @@ public class FriendServiceImpl implements FriendService {
 		return member.get();
 	}
 
-	/*
-	 * @Override public FriendSuggestionDTO suggestFriends(UserNameDTO userNameDTO)
-	 * throws MemberNotFoundException { Member member=
-	 * getMember(userNameDTO.getUserName()); List<Member> friends=memberRepository.
-	 * 
-	 * }
-	 */
+	@Override
+	public FriendSuggestionDTO suggestFriends(UserNameDTO userNameDTO) throws MemberNotFoundException {
+		Member member = getMember(userNameDTO.getUserName());
+
+		List<Long> friendIds = friendRepository.findFriendsByMemberId(member.getId());
+		List<Long> commonFriends = new ArrayList<>();
+		if (!CollectionUtils.isEmpty(friendIds)) {
+			for (Long friendId : friendIds) {
+				commonFriends.addAll(friendRepository.findFriendsByMemberId(friendId));
+			}
+		}
+
+		commonFriends.remove(member.getId());
+
+		Map<Long, Integer> suggestedFriend = new HashMap<Long, Integer>();
+		for (Long friend : commonFriends) {
+			if (suggestedFriend.containsKey(friend)) {
+				suggestedFriend.put(friend, suggestedFriend.get(friend) + 1);
+			} else {
+				suggestedFriend.put(friend, 1);
+			}
+		}
+		Integer max=suggestedFriend.values().stream().max(Integer::compare).get();
+		Long friend=null;
+		for(Long key:suggestedFriend.keySet())
+		{
+			if(max.equals(suggestedFriend.get(key)))
+			{
+				friend=key;
+				break;
+				
+			}
+		}
+		FriendSuggestionDTO friendSuggestionDTO= new FriendSuggestionDTO();
+		List<Member> friendsugg= new ArrayList<>();
+		friendsugg.add(memberRepository.findById(friend).get());
+		friendSuggestionDTO.setSuggestions(friendsugg);
+		
+		return friendSuggestionDTO;
+		
+	}
 
 }

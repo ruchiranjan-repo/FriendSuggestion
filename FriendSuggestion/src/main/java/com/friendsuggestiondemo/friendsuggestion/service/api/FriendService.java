@@ -10,6 +10,6 @@ public interface FriendService {
 	
 	SuccessDTO addFriends(AddFriendsRequestDTO addFriendsRequestDTO)throws MemberNotFoundException;
 	
-	/* FriendSuggestionDTO suggestFriends(UserNameDTO userNameDTO); */
+	 FriendSuggestionDTO suggestFriends(UserNameDTO userNameDTO)throws MemberNotFoundException; 
 
 }
