@@ -11,5 +11,7 @@ import com.friendsuggestiondemo.friendsuggestion.entity.Member;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
 	Optional<Member> findByUserName(String userName);
+	
+	Optional<Member> findById(Long id);
 
 }
